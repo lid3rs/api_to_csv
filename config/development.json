@@ -1,0 +1,13 @@
+{
+    "paths": {
+        "getCatalog": "../common/getCatalog.js",
+        "saveFilePath": "./../../client/public/"
+    },
+    "users": [
+        {
+            "id": 1,
+            "name": "q",
+            "password": "q"
+        }
+    ]
+}

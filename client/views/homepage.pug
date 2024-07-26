@@ -1,0 +1,120 @@
+extends layout
+
+block variables
+    - var title = 'DB Exporter'
+
+block content
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js")          
+  div.container.login-container.h-100
+    div.row.align-items-center.h-100
+      div.col-md-6.mx-auto.login-form
+        h3= title
+        hr
+        div.row
+          div.col
+            p Download Progress:
+              small
+                strong= " ("
+                  span(id="productNumber")= 0
+                  span= " of ~20 500)"
+            div.progress
+              div(
+                id="progressbar"
+                style=""
+                class="progress-bar"
+                role="progressbar" 
+                aria-valuenow="0"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              )
+            div.d-flex.align-items-end.flex-column
+              small.mt-1
+                span= "Product MPN: "
+                  strong
+                    span(id="productMpn")= "None"
+            hr              
+            div.row
+              div.col
+                div.alert.alert-danger.d-none(role="alert" id="alert")
+                div.d-flex.justify-content-between
+                  div.d-flex.justify-content-start
+                    button(
+                      id="request"
+                      value="Request"
+                      class="btn btn-primary mr-2"
+                    ) Request
+                    button(
+                      disabled="disabled"
+                      id="cancelRequest"
+                      value="Cancel"
+                      class="btn btn-danger"
+                    ) Cancel
+                  div.d-flex.justify-content-end
+                    form(action=logout style="padding:0" method="POST")
+                      button(
+                        type="submit"
+                        value="Logout"
+                        class="btn btn-secondary"
+                      ) Logout
+                div.mt-4.d-none(id="download")
+                  hr
+                  div.alert.alert-success(role="alert" id="alert-success")
+                  a.btn.btn-outline-primary.btn-block.btn-lg.btn-success(id="download-link" target="_blank" ).
+                    Download .CSV file
+                  hr
+            div.row
+              div.col.mt-4
+                  small.
+                    If you see error 400, try again in 20 minutes. https://api.accdistribution.net/ is blocking frequent requests. If you see other errors, contact application developer.
+  script.
+    if (!!window.EventSource) {
+      var pid;
+      var source = new EventSource('/stream');
+      source.addEventListener('message', function(e){
+        let data = JSON.parse(e.data)
+        if(data.error){
+          $(".alert").addClass("d-none");
+          $(".alert").removeClass("d-block");
+          $(".alert-danger").text(data.error);
+          $(".alert-danger").addClass("d-block");
+        }else if(data.success){
+          $("#download-link").attr("href", "/download?link=" + data.link)
+          $(".alert").addClass("d-none");
+          $(".alert").removeClass("d-block");
+          $(".alert-success").text(data.success);
+          $(".alert-success").removeClass("d-none");
+          $("#download").addClass("d-block");
+          $("#request").removeAttr('disabled')
+          $("#cancelRequest").attr('disabled', "disabled")
+        }else if(data.mpn){
+          pid = data.pid;
+          $(".alert, .alert-danger").addClass("d-none");
+          $(".alert, .alert-danger").removeClass("d-block");
+          $("#productMpn").text(data.mpn)
+          $("#productNumber").text(data.nr)
+          $("#progressbar").attr('aria-valuenow', data.nr/20500*100)
+          $("#progressbar").attr('style', `width: ${data.nr/20500*100}%`)
+          $("#request").attr('disabled','disabled')
+          $("#cancelRequest").removeAttr('disabled')
+        }else{
+          $("#request").removeAttr('disabled')
+          $("#cancelRequest").attr('disabled', "disabled")
+        }
+      }, false)
+    } else {
+      alert("Your browser doesn't support SSE")
+    }
+  script.
+    $("#request").click(function(e){
+      $("#request").attr('disabled',true)
+      $.ajax({
+        url: "#{request}", 
+        method: 'POST'
+      });
+    });
+    $("#cancelRequest").click(function(){
+      $.ajax({
+        url: "#{request}?pid=" + pid, 
+        method: 'POST'
+      });
+    });

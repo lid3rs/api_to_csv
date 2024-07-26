@@ -1,0 +1,22 @@
+{
+    "api": {
+        "LicenseKey": "xxx",
+        "Locale": "en",
+        "Currency": "EUR",
+        "CompanyId": "xx"
+    },
+    "url": {
+        "download": "/download",
+        "request": "/launch",
+        "logout": "/logout",
+        "login": "/login",
+        "stream": "/stream",
+        "api": "https://xxx.net/v1"
+    },
+    "paths": {
+        "getCatalog": "./getCatalog.bundle.js",
+        "saveFilePath": "../client/public/",
+        "views": "../client/views",
+        "public": "../client/public/"
+    }
+}
